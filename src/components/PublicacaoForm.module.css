@@ -1,0 +1,91 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.tipoSelector {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.tipoButton {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.tipoButton:hover {
+  background: var(--color-neutral-100);
+}
+
+.tipoButtonAtivo {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.field select,
+.field textarea {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-base);
+}
+
+.field select:disabled {
+  background: var(--color-neutral-100);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.field select:focus,
+.field textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.erro {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.sucesso {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-5);
+  text-align: center;
+  font-weight: 600;
+}

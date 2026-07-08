@@ -1,0 +1,15 @@
+.message {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
