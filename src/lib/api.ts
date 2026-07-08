@@ -14,7 +14,7 @@ export async function fetchApi(path: string, options: RequestInit = {}) {
     (headers as Record<string, string>)["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+  const res = await fetch(`/api${path}`, {
     ...options,
     credentials: "include",
     headers,
