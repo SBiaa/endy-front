@@ -9,6 +9,8 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { CardGridSkeleton } from "@/components/CardGridSkeleton";
 import { Spinner } from "@/components/Spinner";
+import { validar } from "@/lib/validacao";
+import { usuarioSchema } from "@/schemas/usuario";
 import type { Aluno, Turma, Usuario } from "@/types";
 import styles from "./usuarios.module.css";
 
@@ -51,6 +53,7 @@ export default function UsuariosPage() {
   const [form, setForm] = useState<FormState>(FORM_INICIAL);
   const [salvando, setSalvando] = useState(false);
   const [erroForm, setErroForm] = useState("");
+  const [erros, setErros] = useState<Record<string, string>>({});
   const [senhaGerada, setSenhaGerada] = useState("");
   const [copiado, setCopiado] = useState(false);
   const [erroCopia, setErroCopia] = useState(false);
@@ -101,6 +104,7 @@ export default function UsuariosPage() {
     setUsuarioEditando(null);
     setForm(FORM_INICIAL);
     setErroForm("");
+    setErros({});
     setSenhaGerada("");
   }
 
@@ -113,6 +117,7 @@ export default function UsuariosPage() {
       papel: usuario.papel as "PROFESSOR" | "RESPONSAVEL",
     });
     setErroForm("");
+    setErros({});
   }
 
   function fecharModalForm() {
@@ -129,8 +134,15 @@ export default function UsuariosPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSalvando(true);
     setErroForm("");
+
+    const resultado = validar(usuarioSchema, form);
+    if (resultado.erros) {
+      setErros(resultado.erros);
+      return;
+    }
+    setErros({});
+    setSalvando(true);
 
     try {
       if (modoModal === "editar" && usuarioEditando) {
@@ -426,16 +438,16 @@ export default function UsuariosPage() {
               </div>
             </div>
           ) : (
-            <form className={styles.form} onSubmit={handleSubmit}>
+            <form className={styles.form} onSubmit={handleSubmit} noValidate>
               <div className={styles.field}>
                 <label htmlFor="nome">Nome</label>
                 <input
                   id="nome"
                   value={form.nome}
                   onChange={(e) => atualizarCampo("nome", e.target.value)}
-                  required
                   autoFocus
                 />
+                {erros.nome && <div className={styles.formError}>{erros.nome}</div>}
               </div>
 
               <div className={styles.field}>
@@ -445,8 +457,8 @@ export default function UsuariosPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => atualizarCampo("email", e.target.value)}
-                  required
                 />
+                {erros.email && <div className={styles.formError}>{erros.email}</div>}
               </div>
 
               <div className={styles.field}>
@@ -457,11 +469,11 @@ export default function UsuariosPage() {
                   onChange={(e) =>
                     atualizarCampo("papel", e.target.value as FormState["papel"])
                   }
-                  required
                 >
                   <option value="PROFESSOR">Professor</option>
                   <option value="RESPONSAVEL">Responsável</option>
                 </select>
+                {erros.papel && <div className={styles.formError}>{erros.papel}</div>}
               </div>
 
               {erroForm && <div className={styles.formError}>{erroForm}</div>}

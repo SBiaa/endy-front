@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { fetchApi, ApiError } from "@/lib/api";
+import { validar } from "@/lib/validacao";
+import { registroDiarioSchema } from "@/schemas/registroDiario";
 import { Button } from "./Button";
 import {
   HUMOR_OPCOES,
@@ -41,11 +43,10 @@ export function RegistroDiarioForm({
 
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
+  const [erros, setErros] = useState<Record<string, string>>({});
   const [sucesso, setSucesso] = useState(false);
   const [conflito, setConflito] = useState(false);
   const [carregandoConflito, setCarregandoConflito] = useState(false);
-
-  const podeEnviar = Boolean(humor && cafe && almoco && lanche && sono);
 
   function preencherDoRegistro(registro: RegistroDiario) {
     setRegistroId(registro.id);
@@ -66,8 +67,26 @@ export function RegistroDiarioForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setEnviando(true);
     setErro("");
+
+    const resultado = validar(registroDiarioSchema, {
+      data,
+      humor,
+      cafe,
+      almoco,
+      lanche,
+      sono,
+      trocasFralda,
+      atividades,
+      materiaisNecessarios,
+      observacoes,
+    });
+    if (resultado.erros) {
+      setErros(resultado.erros);
+      return;
+    }
+    setErros({});
+    setEnviando(true);
 
     const payload: Record<string, unknown> = {
       alunoId,
@@ -153,7 +172,7 @@ export function RegistroDiarioForm({
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <div className={styles.field}>
         <label htmlFor="data">Data</label>
         <input
@@ -161,8 +180,8 @@ export function RegistroDiarioForm({
           type="date"
           value={data}
           onChange={(e) => setData(e.target.value)}
-          required
         />
+        {erros.data && <div className={styles.erro}>{erros.data}</div>}
       </div>
 
       <div className={styles.field}>
@@ -182,33 +201,37 @@ export function RegistroDiarioForm({
             </button>
           ))}
         </div>
+        {erros.humor && <div className={styles.erro}>{erros.humor}</div>}
       </div>
 
       <div className={styles.field}>
         <label>Refeições</label>
         {(
           [
-            { label: "Café", valor: cafe, setValor: setCafe },
-            { label: "Almoço", valor: almoco, setValor: setAlmoco },
-            { label: "Lanche", valor: lanche, setValor: setLanche },
+            { campo: "cafe", label: "Café", valor: cafe, setValor: setCafe },
+            { campo: "almoco", label: "Almoço", valor: almoco, setValor: setAlmoco },
+            { campo: "lanche", label: "Lanche", valor: lanche, setValor: setLanche },
           ] as const
-        ).map(({ label, valor, setValor }) => (
-          <div key={label} className={styles.refeicaoRow}>
-            <span className={styles.refeicaoLabel}>{label}</span>
-            <div className={styles.pillGroup}>
-              {REFEICAO_OPCOES.map((opcao) => (
-                <button
-                  key={opcao.valor}
-                  type="button"
-                  className={`${styles.pill} ${
-                    valor === opcao.valor ? styles.pillAtivo : ""
-                  }`}
-                  onClick={() => setValor(opcao.valor)}
-                >
-                  {opcao.label}
-                </button>
-              ))}
+        ).map(({ campo, label, valor, setValor }) => (
+          <div key={label}>
+            <div className={styles.refeicaoRow}>
+              <span className={styles.refeicaoLabel}>{label}</span>
+              <div className={styles.pillGroup}>
+                {REFEICAO_OPCOES.map((opcao) => (
+                  <button
+                    key={opcao.valor}
+                    type="button"
+                    className={`${styles.pill} ${
+                      valor === opcao.valor ? styles.pillAtivo : ""
+                    }`}
+                    onClick={() => setValor(opcao.valor)}
+                  >
+                    {opcao.label}
+                  </button>
+                ))}
+              </div>
             </div>
+            {erros[campo] && <div className={styles.erro}>{erros[campo]}</div>}
           </div>
         ))}
       </div>
@@ -230,6 +253,7 @@ export function RegistroDiarioForm({
             </button>
           ))}
         </div>
+        {erros.sono && <div className={styles.erro}>{erros.sono}</div>}
       </div>
 
       <div className={styles.field}>
@@ -297,7 +321,7 @@ export function RegistroDiarioForm({
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={!podeEnviar || enviando}>
+        <Button type="submit" disabled={enviando}>
           {enviando ? "Salvando..." : registroId ? "Salvar alterações" : "Salvar"}
         </Button>
       </div>

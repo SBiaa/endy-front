@@ -8,6 +8,8 @@ import { Button } from "@/components/Button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { CardGridSkeleton } from "@/components/CardGridSkeleton";
+import { validar } from "@/lib/validacao";
+import { turmaSchema } from "@/schemas/turma";
 import type { Turma } from "@/types";
 import styles from "./turmas.module.css";
 
@@ -20,6 +22,7 @@ export default function TurmasPage() {
   const [nome, setNome] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [erroForm, setErroForm] = useState("");
+  const [erros, setErros] = useState<Record<string, string>>({});
 
   const [turmaExcluindo, setTurmaExcluindo] = useState<Turma | null>(null);
   const [excluindo, setExcluindo] = useState(false);
@@ -49,6 +52,7 @@ export default function TurmasPage() {
     setTurmaEditando(null);
     setNome("");
     setErroForm("");
+    setErros({});
   }
 
   function abrirModalEditar(turma: Turma) {
@@ -56,6 +60,7 @@ export default function TurmasPage() {
     setTurmaEditando(turma);
     setNome(turma.nome);
     setErroForm("");
+    setErros({});
   }
 
   function fecharModalForm() {
@@ -65,8 +70,15 @@ export default function TurmasPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSalvando(true);
     setErroForm("");
+
+    const resultado = validar(turmaSchema, { nome });
+    if (resultado.erros) {
+      setErros(resultado.erros);
+      return;
+    }
+    setErros({});
+    setSalvando(true);
 
     try {
       if (modoModal === "editar" && turmaEditando) {
@@ -177,6 +189,7 @@ export default function TurmasPage() {
         >
           <form
             onSubmit={handleSubmit}
+            noValidate
             style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}
           >
             <div className={styles.field}>
@@ -185,9 +198,9 @@ export default function TurmasPage() {
                 id="nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                required
                 autoFocus
               />
+              {erros.nome && <div className={styles.formError}>{erros.nome}</div>}
             </div>
 
             {erroForm && <div className={styles.formError}>{erroForm}</div>}

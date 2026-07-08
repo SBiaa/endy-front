@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { fetchApi } from "@/lib/api";
+import { validar } from "@/lib/validacao";
+import { publicacaoSchema } from "@/schemas/publicacao";
 import { Button } from "./Button";
 import type { Aluno, Turma, TipoPublicacao } from "@/types";
 import styles from "./PublicacaoForm.module.css";
@@ -37,20 +39,23 @@ export function PublicacaoForm({
   const [conteudo, setConteudo] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
+  const [erros, setErros] = useState<Record<string, string>>({});
   const [sucesso, setSucesso] = useState(false);
 
   const turmaSelectDesabilitado = tipo === "TURMA" && Boolean(turmaIdInicial);
   const alunoSelectDesabilitado = tipo === "INDIVIDUAL" && Boolean(alunoIdInicial);
 
-  const podeEnviar =
-    conteudo.trim().length > 0 &&
-    (tipo !== "TURMA" || Boolean(turmaId)) &&
-    (tipo !== "INDIVIDUAL" || Boolean(alunoId));
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setEnviando(true);
     setErro("");
+
+    const resultado = validar(publicacaoSchema, { tipo, conteudo, turmaId, alunoId });
+    if (resultado.erros) {
+      setErros(resultado.erros);
+      return;
+    }
+    setErros({});
+    setEnviando(true);
 
     const payload: Record<string, unknown> = { tipo, conteudo };
     if (tipo === "TURMA") payload.turmaId = turmaId;
@@ -74,7 +79,7 @@ export function PublicacaoForm({
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <div className={styles.tipoSelector}>
         {TIPOS.map(({ valor, label }) => (
           <button
@@ -89,6 +94,7 @@ export function PublicacaoForm({
           </button>
         ))}
       </div>
+      {erros.tipo && <div className={styles.erro}>{erros.tipo}</div>}
 
       {tipo === "TURMA" && (
         <div className={styles.field}>
@@ -98,7 +104,6 @@ export function PublicacaoForm({
             value={turmaId}
             onChange={(e) => setTurmaId(e.target.value)}
             disabled={turmaSelectDesabilitado}
-            required
           >
             <option value="" disabled>
               Selecione uma turma
@@ -120,7 +125,6 @@ export function PublicacaoForm({
             value={alunoId}
             onChange={(e) => setAlunoId(e.target.value)}
             disabled={alunoSelectDesabilitado}
-            required
           >
             <option value="" disabled>
               Selecione um aluno
@@ -140,9 +144,9 @@ export function PublicacaoForm({
           id="conteudo"
           value={conteudo}
           onChange={(e) => setConteudo(e.target.value)}
-          required
           autoFocus
         />
+        {erros.conteudo && <div className={styles.erro}>{erros.conteudo}</div>}
       </div>
 
       {erro && <div className={styles.erro}>{erro}</div>}
@@ -151,7 +155,7 @@ export function PublicacaoForm({
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={!podeEnviar || enviando}>
+        <Button type="submit" disabled={enviando}>
           {enviando ? "Publicando..." : "Publicar"}
         </Button>
       </div>

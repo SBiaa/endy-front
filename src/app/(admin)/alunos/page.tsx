@@ -9,6 +9,8 @@ import { Button } from "@/components/Button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { CardGridSkeleton } from "@/components/CardGridSkeleton";
+import { validar } from "@/lib/validacao";
+import { alunoSchema } from "@/schemas/aluno";
 import type { Aluno, Turma } from "@/types";
 import styles from "./alunos.module.css";
 
@@ -39,6 +41,7 @@ export default function AlunosPage() {
   const [form, setForm] = useState<FormState>(FORM_INICIAL);
   const [salvando, setSalvando] = useState(false);
   const [erroForm, setErroForm] = useState("");
+  const [erros, setErros] = useState<Record<string, string>>({});
 
   const [alunoExcluindo, setAlunoExcluindo] = useState<Aluno | null>(null);
   const [excluindo, setExcluindo] = useState(false);
@@ -78,6 +81,7 @@ export default function AlunosPage() {
     setAlunoEditando(null);
     setForm(FORM_INICIAL);
     setErroForm("");
+    setErros({});
   }
 
   function abrirModalEditar(aluno: Aluno) {
@@ -91,6 +95,7 @@ export default function AlunosPage() {
       observacoes: aluno.observacoes ?? "",
     });
     setErroForm("");
+    setErros({});
   }
 
   function fecharModalForm() {
@@ -104,8 +109,15 @@ export default function AlunosPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSalvando(true);
     setErroForm("");
+
+    const resultado = validar(alunoSchema, form);
+    if (resultado.erros) {
+      setErros(resultado.erros);
+      return;
+    }
+    setErros({});
+    setSalvando(true);
 
     const payload = {
       nome: form.nome,
@@ -240,16 +252,16 @@ export default function AlunosPage() {
           title={modoModal === "editar" ? "Editar aluno" : "Novo aluno"}
           onClose={fecharModalForm}
         >
-          <form className={styles.form} onSubmit={handleSubmit}>
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <div className={styles.field}>
               <label htmlFor="nome">Nome</label>
               <input
                 id="nome"
                 value={form.nome}
                 onChange={(e) => atualizarCampo("nome", e.target.value)}
-                required
                 autoFocus
               />
+              {erros.nome && <div className={styles.formError}>{erros.nome}</div>}
             </div>
 
             <div className={styles.field}>
@@ -259,8 +271,10 @@ export default function AlunosPage() {
                 type="date"
                 value={form.dataNascimento}
                 onChange={(e) => atualizarCampo("dataNascimento", e.target.value)}
-                required
               />
+              {erros.dataNascimento && (
+                <div className={styles.formError}>{erros.dataNascimento}</div>
+              )}
             </div>
 
             <div className={styles.field}>
@@ -269,7 +283,6 @@ export default function AlunosPage() {
                 id="turmaId"
                 value={form.turmaId}
                 onChange={(e) => atualizarCampo("turmaId", e.target.value)}
-                required
               >
                 <option value="" disabled>
                   Selecione uma turma
@@ -280,6 +293,7 @@ export default function AlunosPage() {
                   </option>
                 ))}
               </select>
+              {erros.turmaId && <div className={styles.formError}>{erros.turmaId}</div>}
             </div>
 
             <div className={styles.field}>
