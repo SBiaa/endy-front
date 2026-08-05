@@ -7,7 +7,7 @@ import type { Usuario } from "@/types";
 import styles from "./login.module.css";
 
 const REDIRECT_POR_PAPEL: Record<Usuario["papel"], string> = {
-  ADMIN: "/turmas",
+  ADMIN: "/dashboard",
   PROFESSOR: "/professor",
   RESPONSAVEL: "/responsavel",
 };

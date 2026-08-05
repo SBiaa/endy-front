@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Link2, Copy, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Link2, Copy, Check, KeyRound } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/Button";
@@ -61,6 +61,13 @@ export default function UsuariosPage() {
   const [usuarioExcluindo, setUsuarioExcluindo] = useState<Usuario | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState("");
+
+  const [usuarioResetando, setUsuarioResetando] = useState<Usuario | null>(null);
+  const [resetando, setResetando] = useState(false);
+  const [erroReset, setErroReset] = useState("");
+  const [senhaResetada, setSenhaResetada] = useState("");
+  const [copiadoReset, setCopiadoReset] = useState(false);
+  const [erroCopiaReset, setErroCopiaReset] = useState(false);
 
   const [usuarioVinculos, setUsuarioVinculos] = useState<Usuario | null>(null);
   const [vinculosLoading, setVinculosLoading] = useState(false);
@@ -194,6 +201,43 @@ export default function UsuariosPage() {
     } finally {
       setExcluindo(false);
     }
+  }
+
+  async function handleConfirmarReset() {
+    if (!usuarioResetando) return;
+    setResetando(true);
+    setErroReset("");
+
+    try {
+      const resultado = await fetchApi(`/usuarios/${usuarioResetando.id}/resetar-senha`, {
+        method: "POST",
+      });
+      setUsuarioResetando(null);
+      setSenhaResetada(resultado.senhaTemporaria);
+    } catch (err) {
+      setErroReset(err instanceof Error ? err.message : "Erro ao gerar nova senha.");
+    } finally {
+      setResetando(false);
+    }
+  }
+
+  function fecharSenhaResetada() {
+    setSenhaResetada("");
+    setCopiadoReset(false);
+    setErroCopiaReset(false);
+  }
+
+  function handleCopiarSenhaResetada() {
+    navigator.clipboard
+      .writeText(senhaResetada)
+      .then(() => {
+        setErroCopiaReset(false);
+        setCopiadoReset(true);
+        setTimeout(() => setCopiadoReset(false), 1500);
+      })
+      .catch(() => {
+        setErroCopiaReset(true);
+      });
   }
 
   function abrirVinculos(usuario: Usuario) {
@@ -382,6 +426,17 @@ export default function UsuariosPage() {
                   <button
                     type="button"
                     className={styles.iconButton}
+                    onClick={() => {
+                      setUsuarioResetando(usuario);
+                      setErroReset("");
+                    }}
+                    aria-label="Gerar nova senha"
+                  >
+                    <KeyRound size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.iconButton}
                     onClick={() => abrirModalEditar(usuario)}
                     aria-label="Editar usuário"
                   >
@@ -505,6 +560,53 @@ export default function UsuariosPage() {
           loading={excluindo}
           error={erroExclusao}
         />
+      )}
+
+      {usuarioResetando && (
+        <ConfirmDialog
+          title="Gerar nova senha"
+          message={
+            <>
+              Tem certeza que deseja gerar uma nova senha para &quot;{usuarioResetando.nome}
+              &quot;? A senha atual dele(a) vai parar de funcionar.
+            </>
+          }
+          confirmLabel="Gerar nova senha"
+          loadingLabel="Gerando..."
+          onConfirm={handleConfirmarReset}
+          onClose={() => setUsuarioResetando(null)}
+          loading={resetando}
+          error={erroReset}
+        />
+      )}
+
+      {senhaResetada && (
+        <Modal title="Nova senha gerada" onClose={fecharSenhaResetada}>
+          <div className={styles.senhaBox}>
+            <p className={styles.senhaAviso}>
+              Copie e envie essa senha — ela não será mostrada novamente.
+            </p>
+            <div className={styles.senhaValor}>
+              <code>{senhaResetada}</code>
+              <button
+                type="button"
+                className={styles.copyButton}
+                onClick={handleCopiarSenhaResetada}
+              >
+                {copiadoReset ? <Check size={16} /> : <Copy size={16} />}
+                {copiadoReset ? "Copiado!" : "Copiar"}
+              </button>
+            </div>
+            {erroCopiaReset && (
+              <div className={styles.formError}>
+                Não foi possível copiar automaticamente — selecione o texto acima e copie manualmente.
+              </div>
+            )}
+            <div className={styles.modalActions}>
+              <Button onClick={fecharSenhaResetada}>Concluir</Button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {usuarioVinculos && (

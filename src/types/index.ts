@@ -58,6 +58,20 @@ export interface Publicacao {
   };
 }
 
+export interface DashboardAdmin {
+  contagens: {
+    turmas: number;
+    alunos: number;
+    professores: number;
+    responsaveis: number;
+  };
+  turmasSemRegistroHoje: { id: string; nome: string }[];
+  aniversariantesDoMes: { id: string; nome: string; dataNascimento: string }[];
+  ultimasPublicacoes: Publicacao[];
+  professoresInativos: { id: string; nome: string }[];
+  alunosPorTurma: { turmaId: string; nomeTurma: string; totalAlunos: number }[];
+}
+
 export interface RegistroDiario {
   id: string;
   alunoId: string;
