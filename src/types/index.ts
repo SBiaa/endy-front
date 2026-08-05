@@ -58,6 +58,21 @@ export interface Publicacao {
   };
 }
 
+export type StatusPresenca = "PRESENTE" | "AUSENTE" | "JUSTIFICADO";
+
+export interface Presenca {
+  id: string;
+  alunoId: string;
+  data: string;
+  status: StatusPresenca;
+  motivo?: string | null;
+  professorId: string;
+  professor?: {
+    id: string;
+    nome: string;
+  };
+}
+
 export interface DashboardAdmin {
   contagens: {
     turmas: number;

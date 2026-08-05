@@ -32,6 +32,8 @@ body {
   --color-success-bg: #e8f2ea;
   --color-error: #b84c42;
   --color-error-bg: #fbeae8;
+  --color-warning: #a8791f;
+  --color-warning-bg: #f7ecd7;
 
   /* Superfícies */
   --color-bg: var(--color-neutral-50);

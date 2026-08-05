@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Send, NotebookPen } from "lucide-react";
+import { ArrowLeft, Send, NotebookPen, ClipboardCheck } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { calcularIdadeLabel } from "@/lib/idade";
 import { Modal } from "@/components/Modal";
@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Spinner } from "@/components/Spinner";
 import { PublicacaoForm } from "@/components/PublicacaoForm";
 import { RegistroDiarioForm } from "@/components/RegistroDiarioForm";
+import { ChamadaForm } from "@/components/ChamadaForm";
 import type { Aluno, Turma, TipoPublicacao } from "@/types";
 import styles from "./turmaDetalhe.module.css";
 
@@ -47,6 +48,7 @@ export default function TurmaDetalhePage({
   const [loadError, setLoadError] = useState("");
   const [modalPublicacao, setModalPublicacao] = useState<ModalPublicacaoState | null>(null);
   const [modalRegistro, setModalRegistro] = useState<ModalRegistroState | null>(null);
+  const [modalChamadaAberto, setModalChamadaAberto] = useState(false);
 
   useEffect(() => {
     fetchApi(`/turmas/${id}`)
@@ -71,12 +73,18 @@ export default function TurmaDetalhePage({
         <>
           <div className={styles.header}>
             <h1 className={styles.title}>{turma.nome}</h1>
-            <Button
-              onClick={() => setModalPublicacao({ tipo: "TURMA", turmaId: turma.id })}
-            >
-              <Send size={16} />
-              Publicar na turma
-            </Button>
+            <div className={styles.headerActions}>
+              <Button variant="secondary" onClick={() => setModalChamadaAberto(true)}>
+                <ClipboardCheck size={16} />
+                Fazer chamada
+              </Button>
+              <Button
+                onClick={() => setModalPublicacao({ tipo: "TURMA", turmaId: turma.id })}
+              >
+                <Send size={16} />
+                Publicar na turma
+              </Button>
+            </div>
           </div>
 
           <h2 className={styles.sectionTitle}>Alunos</h2>
@@ -141,6 +149,17 @@ export default function TurmaDetalhePage({
             alunoNome={modalRegistro.alunoNome}
             onCancel={() => setModalRegistro(null)}
             onSuccess={() => setModalRegistro(null)}
+          />
+        </Modal>
+      )}
+
+      {modalChamadaAberto && turma && (
+        <Modal title={`Fazer chamada — ${turma.nome}`} onClose={() => setModalChamadaAberto(false)}>
+          <ChamadaForm
+            turmaId={turma.id}
+            alunos={turma.alunos}
+            onCancel={() => setModalChamadaAberto(false)}
+            onSuccess={() => setModalChamadaAberto(false)}
           />
         </Modal>
       )}

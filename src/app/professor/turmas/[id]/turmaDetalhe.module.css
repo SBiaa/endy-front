@@ -27,6 +27,12 @@
   color: var(--color-text);
 }
 
+.headerActions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
 .loadError {
   color: var(--color-error);
   background: var(--color-error-bg);
